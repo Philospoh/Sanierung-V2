@@ -3,212 +3,490 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sanierungsrechner – BAFA & KfW (V2.2)</title>
+<title>Sanierungsrechner – BAFA & KfW (V2.3)</title>
 
 <style>
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fafafa;margin:0}
-.wrap{max-width:1100px;margin:24px auto;padding:0 16px}
-.card{background:#fff;border:1px solid #e6e8eb;border-radius:16px;padding:16px;margin-bottom:12px}
-h1{font-size:22px;margin:0 0 6px}
-h2{font-size:16px;margin:0 0 10px}
-.small{font-size:12px;color:#60646c}
-.muted{color:#60646c;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-.col4{grid-column:span 4}
-.col6{grid-column:span 6}
-.col12{grid-column:span 12}
-@media(max-width:900px){.col4,.col6{grid-column:span 12}}
-input,select{width:100%;padding:10px;border:1px solid #d9dde3;border-radius:12px}
-.btn{background:#111;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
-.btn.secondary{background:#fff;color:#111;border:1px solid #d9dde3}
-.hidden{display:none}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #e6e8eb;font-size:13px}
-th{background:#f4f6f8;text-align:left}
-.right{text-align:right}
-.ok{background:#effff5;border:1px solid #bff0d0;border-radius:14px;padding:12px}
-.warn{background:#fff6e5;border:1px solid #ffe0a3;border-radius:14px;padding:12px}
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fafafa;margin:0}
+  .wrap{max-width:1120px;margin:24px auto;padding:0 16px}
+  .card{background:#fff;border:1px solid #e6e8eb;border-radius:16px;padding:16px;margin-bottom:12px}
+  h1{font-size:22px;margin:0 0 6px}
+  h2{font-size:16px;margin:0 0 10px}
+  label{display:block;font-size:13px;color:#2b2f36;margin:0 0 6px}
+  .small{font-size:12px;color:#60646c;line-height:1.35}
+  .muted{color:#60646c;font-size:13px;line-height:1.35}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+  .col4{grid-column:span 4}
+  .col6{grid-column:span 6}
+  .col12{grid-column:span 12}
+  @media(max-width:900px){.col4,.col6{grid-column:span 12}}
+  input,select{width:100%;padding:10px;border:1px solid #d9dde3;border-radius:12px;font-size:14px}
+  .btn{background:#111;color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:650;cursor:pointer}
+  .btn.secondary{background:#fff;color:#111;border:1px solid #d9dde3}
+  .hidden{display:none}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #e6e8eb;font-size:13px}
+  th{background:#f4f6f8;text-align:left}
+  .right{text-align:right}
+  .ok{background:#effff5;border:1px solid #bff0d0;border-radius:14px;padding:12px}
+  .warn{background:#fff6e5;border:1px solid #ffe0a3;border-radius:14px;padding:12px}
+  .kpis{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:12px}
+  .kpi{grid-column:span 3;border:1px dashed #d9dde3;border-radius:14px;padding:12px}
+  .kpi b{display:block;font-size:18px;margin-top:4px}
+  @media(max-width:900px){.kpi{grid-column:span 12}}
+  .hr{height:1px;background:#e6e8eb;margin:12px 0}
 </style>
 </head>
 
 <body>
 <div class="wrap">
 
-<div class="card">
-<h1>Sanierungsrechner</h1>
-<p class="muted">Grobe Kosten- & Förderindikation (BAFA / KfW) – keine Förderzusage.</p>
-</div>
+  <div class="card">
+    <h1>Sanierungsrechner</h1>
+    <p class="muted">Grobe Kosten-, Einspar- & Förderindikation (BAFA / KfW) – keine Förderzusage.</p>
+  </div>
 
-<!-- STEP 1 -->
-<div class="card">
-<h2>1️⃣ Gebäude & Förderoptionen</h2>
-<div class="grid">
+  <!-- BASIS -->
+  <div class="card">
+    <h2>1️⃣ Gebäude & Energie</h2>
+    <div class="grid">
 
-<div class="col4">
-<label>Baujahr</label>
-<select id="baujahr">
-<option value="bis_1978">bis 1978</option>
-<option value="1979_1994">1979–1994</option>
-<option value="1995_2009">1995–2009</option>
-<option value="ab_2010">ab 2010</option>
-</select>
-</div>
+      <div class="col4">
+        <label>Gebäudetyp</label>
+        <select id="buildingType">
+          <option value="efh" selected>Einfamilienhaus</option>
+          <option value="rh">Reihenhaus</option>
+          <option value="mfh">Mehrfamilienhaus</option>
+        </select>
+      </div>
 
-<div class="col4">
-<label>Wohnfläche (m²)</label>
-<input id="wf" value="140">
-</div>
+      <div class="col4">
+        <label>Baujahr (Klasse)</label>
+        <select id="baujahr">
+          <option value="bis_1978">bis 1978</option>
+          <option value="1979_1994">1979–1994</option>
+          <option value="1995_2009">1995–2009</option>
+          <option value="ab_2010">ab 2010</option>
+        </select>
+      </div>
 
-<div class="col4">
-<label>Energieträger</label>
-<select id="fuel">
-<option value="gas">Erdgas</option>
-<option value="oil">Heizöl</option>
-<option value="district">Fernwärme</option>
-</select>
-</div>
+      <div class="col4">
+        <label>Wohnfläche (m²)</label>
+        <input id="wf" value="140" inputmode="decimal" placeholder="z.B. 140">
+        <div class="small">Pflichtfeld.</div>
+      </div>
 
-<div class="col6">
-<label>Förderungen berücksichtigen?</label>
-<select id="fundingMode">
-<option value="no">Nein</option>
-<option value="yes">Ja</option>
-</select>
-</div>
+      <div class="col6">
+        <label>Energieträger</label>
+        <select id="fuel">
+          <option value="gas" selected>Erdgas</option>
+          <option value="oil">Heizöl</option>
+          <option value="district">Fernwärme</option>
+          <option value="electric">Strom (direkt)</option>
+        </select>
+      </div>
 
-<div class="col6 hidden" id="isfpWrap">
-<label>iSFP vorhanden? (+5 % BAFA)</label>
-<select id="isfp">
-<option value="no">Nein</option>
-<option value="yes">Ja</option>
-</select>
-</div>
+      <div class="col6">
+        <label>Jahresverbrauch (kWh/Jahr) – optional</label>
+        <input id="kwh" inputmode="decimal" placeholder="z.B. 22000 oder 22.000">
+        <div class="small" id="kwhHint"></div>
+      </div>
 
-<div class="col6 hidden" id="kfwWrap">
-<label>Heizung über KfW fördern?</label>
-<select id="kfw">
-<option value="no">Nein</option>
-<option value="yes">Ja</option>
-</select>
-</div>
+      <div class="col6">
+        <label>Energiepreis (€/kWh) – optional</label>
+        <input id="price" inputmode="decimal" placeholder="z.B. 0,12 oder 0.12">
+        <div class="small" id="priceHint"></div>
+      </div>
 
-</div>
-</div>
+      <div class="col6">
+        <label>Preisniveau / Risikopuffer</label>
+        <select id="uplift">
+          <option value="0" selected>0% (neutral)</option>
+          <option value="10">+10% (vorsichtig)</option>
+          <option value="20">+20% (sehr vorsichtig)</option>
+        </select>
+        <div class="small">Wirkt auf Investitionskosten (nicht auf Einsparung).</div>
+      </div>
 
-<!-- STEP 2 -->
-<div class="card">
-<h2>2️⃣ Maßnahmen</h2>
-<div class="grid">
-<div class="col6"><label><input type="checkbox" value="heat"> Heizung tauschen</label></div>
-<div class="col6"><label><input type="checkbox" value="facade"> Fassade dämmen</label></div>
-<div class="col6"><label><input type="checkbox" value="roof"> Dach / oberste Geschossdecke</label></div>
-<div class="col6"><label><input type="checkbox" value="windows"> Fenster erneuern</label></div>
-<div class="col6"><label><input type="checkbox" value="basement"> Kellerdecke dämmen</label></div>
-</div>
-</div>
+    </div>
+  </div>
 
-<!-- STEP 3 -->
-<div class="card">
-<button class="btn" id="calcBtn">Ergebnis anzeigen</button>
-</div>
+  <!-- FÖRDERUNG -->
+  <div class="card">
+    <h2>2️⃣ Förderoptionen</h2>
+    <div class="grid">
 
-<!-- RESULT -->
-<div class="card hidden" id="result">
-<h2>Ergebnis (Indikation)</h2>
+      <div class="col6">
+        <label>Förderungen berücksichtigen?</label>
+        <select id="fundingMode">
+          <option value="no" selected>Nein</option>
+          <option value="yes">Ja</option>
+        </select>
+      </div>
 
-<div class="grid">
-<div class="col4 ok">
-<div class="small">Investition brutto</div>
-<b id="invBrutto"></b>
-</div>
+      <div class="col6 hidden" id="isfpWrap">
+        <label>iSFP vorhanden? (BAFA +5%)</label>
+        <select id="isfp">
+          <option value="no" selected>Nein</option>
+          <option value="yes">Ja</option>
+        </select>
+      </div>
 
-<div class="col4 ok">
-<div class="small">Förderung gesamt</div>
-<b id="fundSum"></b>
-</div>
+      <div class="col6 hidden" id="kfwWrap">
+        <label>Heizung über KfW fördern? (30–70% indikativ)</label>
+        <select id="kfw">
+          <option value="no" selected>Nein</option>
+          <option value="yes">Ja</option>
+        </select>
+        <div class="small">Im Rechner wird für die Indikation typischerweise 50% angesetzt (Bandbreite im Hinweis).</div>
+      </div>
 
-<div class="col4 ok">
-<div class="small">Investition netto</div>
-<b id="invNetto"></b>
-</div>
-</div>
+    </div>
+  </div>
 
-<table style="margin-top:12px">
-<thead>
-<tr><th>Maßnahme</th><th class="right">Brutto</th><th class="right">Förderung</th><th class="right">Netto</th></tr>
-</thead>
-<tbody id="rows"></tbody>
-</table>
+  <!-- MASSNAHMEN -->
+  <div class="card">
+    <h2>3️⃣ Maßnahmen</h2>
+    <div class="grid">
+      <div class="col6"><label><input type="checkbox" value="heat"> Heizung tauschen</label></div>
+      <div class="col6"><label><input type="checkbox" value="heat_opt"> Heizungsoptimierung (z.B. Abgleich)</label></div>
+      <div class="col6"><label><input type="checkbox" value="facade"> Fassade dämmen</label></div>
+      <div class="col6"><label><input type="checkbox" value="roof"> Dach / oberste Geschossdecke</label></div>
+      <div class="col6"><label><input type="checkbox" value="windows"> Fenster erneuern</label></div>
+      <div class="col6"><label><input type="checkbox" value="basement"> Kellerdecke dämmen</label></div>
+    </div>
+  </div>
 
-<div class="warn" style="margin-top:12px">
-<b>Förderannahmen:</b><br>
-• BAFA: 15 % (+5 % iSFP, falls vorhanden)<br>
-• KfW Heizung: 30–70 % (indikativ)<br>
-• Keine Förderzusage
-</div>
-</div>
+  <!-- ACTION -->
+  <div class="card">
+    <button class="btn" id="calcBtn">Ergebnis anzeigen</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="card hidden" id="result">
+    <h2>Ergebnis (Indikation)</h2>
+
+    <div class="kpis">
+      <div class="kpi">
+        <span class="muted">Investition brutto</span>
+        <b id="invBrutto">—</b>
+        <span class="small" id="invBruttoBand">—</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">Förderung gesamt</span>
+        <b id="fundSum">—</b>
+        <span class="small">BAFA/KfW indikativ</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">Investition netto</span>
+        <b id="invNetto">—</b>
+        <span class="small" id="invNettoBand">—</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">Amortisation</span>
+        <b id="payback">—</b>
+        <span class="small">Netto / Einsparung</span>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <span class="muted">Einsparung (kWh/Jahr)</span>
+        <b id="savKwh">—</b>
+        <span class="small" id="savPct">—</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">Einsparung (€/Jahr)</span>
+        <b id="savEur">—</b>
+        <span class="small" id="priceUsed">—</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">Verbrauchsbasis</span>
+        <b id="baseKwh">—</b>
+        <span class="small" id="baseNote">—</span>
+      </div>
+      <div class="kpi">
+        <span class="muted">CO₂-Minderung</span>
+        <b id="co2">—</b>
+        <span class="small">kg CO₂/Jahr indikativ</span>
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Maßnahme</th>
+          <th class="right">Brutto (typ.)</th>
+          <th class="right">Förderung (typ.)</th>
+          <th class="right">Netto (typ.)</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+
+    <div class="warn" style="margin-top:12px">
+      <b>Förderannahmen (indikativ):</b><br>
+      • BAFA: 15% (+5% iSFP, falls vorhanden) – angewendet auf Gebäudehülle & Optimierung<br>
+      • KfW Heizung: 30–70% – hier typisch 50% (nur wenn aktiviert)<br>
+      • Keine Förderzusage, keine Antragsprüfung, keine Deckel/WE/Technologieprüfung im Rechner
+    </div>
+  </div>
 
 </div>
 
 <script>
-const costs={
-  heat:22000,
-  facade:24000,
-  roof:18000,
-  windows:16000,
-  basement:9000
+/* -----------------------------
+  Richtwerte & Defaults
+------------------------------ */
+const baselineKwhPerM2 = {
+  bis_1978: 190,
+  "1979_1994": 140,
+  "1995_2009": 100,
+  ab_2010: 70
 };
 
+const defaultPrices = { gas:0.12, oil:0.12, district:0.14, electric:0.30 };
+const co2Factors   = { gas:0.20088, oil:0.2664, district:0.18, electric:0.363 };
+
+/* Einspar-Wirkungen (typisch, konservativ gedacht) */
+const savePctTyp = {
+  heat: 0.25,
+  heat_opt: 0.08,
+  facade: 0.20,
+  roof: 0.18,
+  windows: 0.10,
+  basement: 0.07
+};
+
+/* Kostenmodelle (typisch, V2.3) */
+const measures = {
+  heat:      { label:"Heizung tauschen", model:"flat",        cost:{min:14000, typ:22000, max:32000} },
+  heat_opt:  { label:"Heizungsoptimierung", model:"flat",     cost:{min:600,   typ:1200,  max:2500} },
+  facade:    { label:"Fassade dämmen", model:"m2_facade",     cost:{min:90,    typ:140,   max:220} },
+  roof:      { label:"Dach / o. Geschossdecke", model:"m2_roof", cost:{min:70, typ:110, max:180} },
+  windows:   { label:"Fenster erneuern", model:"per_m2_living", cost:{min:80,  typ:120,  max:200} },
+  basement:  { label:"Kellerdecke dämmen", model:"m2_floor",  cost:{min:50,    typ:90,    max:140} }
+};
+
+/* Förderlogik */
+function bafaRate(hasIsfp){ return hasIsfp ? 0.20 : 0.15; }
+const kfwHeatingRates = { min:0.30, typ:0.50, max:0.70 };
+
+/* -----------------------------
+  Helpers
+------------------------------ */
+function parseLocaleNumber(v){
+  if(v === null || v === undefined) return 0;
+  let s = String(v).trim();
+  if(!s) return 0;
+  s = s.replace(/\s/g,"");
+  const hasComma = s.includes(",");
+  const hasDot = s.includes(".");
+  if(hasComma && hasDot){
+    const lastComma = s.lastIndexOf(",");
+    const lastDot = s.lastIndexOf(".");
+    const decIsComma = lastComma > lastDot;
+    if(decIsComma){
+      s = s.replace(/\./g,"").replace(",",".");
+    } else {
+      s = s.replace(/,/g,"");
+    }
+  } else if(hasComma && !hasDot){
+    s = s.replace(",",".");
+  }
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
 function eur(x){
+  if(!Number.isFinite(x)) return "—";
   return new Intl.NumberFormat("de-DE",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(x);
 }
-
-function bafaRate(hasIsfp){
-  return hasIsfp ? 0.20 : 0.15;
+function intFmt(x){
+  if(!Number.isFinite(x)) return "—";
+  return new Intl.NumberFormat("de-DE",{maximumFractionDigits:0}).format(x);
+}
+function years(x){
+  if(!Number.isFinite(x) || x<=0) return "—";
+  return `${Math.round(x)} Jahre`;
 }
 
-const kfwRates={min:0.30,typ:0.50,max:0.70};
+/* Flächenabschätzung: beeinflusst m²-Kosten (Fassade/Dach/Keller) */
+function estAreas(wf, buildingType){
+  const floors = buildingType === "mfh" ? 3 : 2;
+  const footprint = wf / floors;
+  const facadeFactor = buildingType === "rh" ? 0.70 : (buildingType === "mfh" ? 0.85 : 1.00);
+  const roofArea = footprint * 1.10;
+  const floorArea = footprint;
+  const side = Math.sqrt(footprint);
+  const perimeter = 4 * side;
+  const height = 2.6 * floors;
+  const facadeArea = perimeter * height * 0.95 * facadeFactor;
+  return { roofArea, floorArea, facadeArea };
+}
 
-fundingMode.onchange=()=>{
-  isfpWrap.classList.toggle("hidden",fundingMode.value!=="yes");
-  kfwWrap.classList.toggle("hidden",fundingMode.value!=="yes");
-};
+/* Kombinierte Einsparung (multiplikativ) + konservativ */
+function combinedSavingPct(selectedKeys){
+  let remaining = 1.0;
+  for(const k of selectedKeys){
+    const p = savePctTyp[k] ?? 0;
+    remaining *= (1 - p);
+  }
+  return (1 - remaining) * 0.90;
+}
 
-calcBtn.onclick=()=>{
-  const checked=[...document.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
-  if(!checked.length){alert("Bitte Maßnahme wählen");return;}
+/* Kosten je Maßnahme (min/typ/max) */
+function costForMeasure(key, wf, areas, upliftPct){
+  const m = measures[key];
+  let unit = 1;
+  if(m.model === "m2_facade") unit = areas.facadeArea;
+  if(m.model === "m2_roof") unit = areas.roofArea;
+  if(m.model === "m2_floor") unit = areas.floorArea;
+  if(m.model === "per_m2_living") unit = wf;
 
-  let brutto=0, foerder=0;
-  rows.innerHTML="";
+  const mul = 1 + (upliftPct/100);
+  return {
+    min: m.cost.min * unit * mul,
+    typ: m.cost.typ * unit * mul,
+    max: m.cost.max * unit * mul
+  };
+}
 
-  checked.forEach(m=>{
-    const c=costs[m];
-    let f=0;
+/* -----------------------------
+  UI syncing
+------------------------------ */
+function updateKwhHint(){
+  const wfVal = parseLocaleNumber(wf.value);
+  const by = baujahr.value;
+  const baseline = baselineKwhPerM2[by] ?? 0;
+  const assumed = (wfVal>0 && baseline>0) ? wfVal * baseline : 0;
+  kwhHint.textContent = assumed>0
+    ? `Wenn leer: typischer Ansatz ca. ${intFmt(assumed)} kWh/Jahr (≈ ${baseline} kWh/m²a).`
+    : `Wenn leer: typischer Ansatz nach Baujahr.`;
+}
 
-    if(fundingMode.value==="yes"){
-      if(m==="heat" && kfw.value==="yes"){
-        f=c*kfwRates.typ;
-      }else{
-        f=c*bafaRate(isfp.value==="yes");
+function updatePriceHint(){
+  const fu = fuel.value;
+  const v = defaultPrices[fu];
+  const label = ({gas:"Erdgas",oil:"Heizöl",district:"Fernwärme",electric:"Strom (direkt)"})[fu] || fu;
+  priceHint.textContent = Number.isFinite(v)
+    ? `Wenn leer: Standardwert für ${label}: ${v.toFixed(2)} €/kWh.`
+    : "";
+}
+
+fundingMode.addEventListener("change", ()=>{
+  const on = fundingMode.value === "yes";
+  isfpWrap.classList.toggle("hidden", !on);
+  kfwWrap.classList.toggle("hidden", !on);
+});
+
+wf.addEventListener("input", updateKwhHint);
+baujahr.addEventListener("change", updateKwhHint);
+fuel.addEventListener("change", updatePriceHint);
+
+/* -----------------------------
+  Calculation
+------------------------------ */
+calcBtn.addEventListener("click", ()=>{
+  const wfVal = parseLocaleNumber(wf.value);
+  if(!(wfVal >= 20)){ alert("Bitte eine sinnvolle Wohnfläche eingeben (mind. 20 m²)."); return; }
+
+  const selected = [...document.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
+  if(!selected.length){ alert("Bitte mindestens eine Maßnahme auswählen."); return; }
+
+  const by = baujahr.value;
+  const baseline = baselineKwhPerM2[by] ?? 0;
+
+  const userKwh = parseLocaleNumber(kwh.value);
+  const baseKwhVal = (userKwh>0) ? userKwh : (wfVal * baseline);
+  const baseNoteTxt = (userKwh>0) ? "Nutzereingabe" : "Richtwert nach Baujahr";
+
+  const userPrice = parseLocaleNumber(price.value);
+  const priceVal = (userPrice>0) ? userPrice : (defaultPrices[fuel.value] ?? 0);
+  if(!(priceVal > 0)){ alert("Bitte Energiepreis eingeben oder Energieträger prüfen."); return; }
+
+  const upliftPct = parseLocaleNumber(uplift.value);
+  const areas = estAreas(wfVal, buildingType.value);
+
+  // Einsparung
+  const savePct = combinedSavingPct(selected);
+  const savedKwh = baseKwhVal * savePct;
+  const savedEur = savedKwh * priceVal;
+
+  // CO2
+  const co2 = savedKwh * (co2Factors[fuel.value] ?? 0);
+
+  // Kosten + Förderung
+  let bruttoMin=0, bruttoTyp=0, bruttoMax=0;
+  let fundTypSum=0;
+  rows.innerHTML = "";
+
+  const fundingOn = (fundingMode.value === "yes");
+  const hasIsfp = (isfp.value === "yes");
+  const kfwOn = (kfw.value === "yes");
+
+  for(const key of selected){
+    const c = costForMeasure(key, wfVal, areas, upliftPct);
+    bruttoMin += c.min; bruttoTyp += c.typ; bruttoMax += c.max;
+
+    // Förderquote typ je Maßnahme
+    let fundRateTyp = 0;
+
+    if(fundingOn){
+      if(key === "heat" && kfwOn){
+        fundRateTyp = kfwHeatingRates.typ;  // typisch 50%
+      } else {
+        // BAFA für Hülle + Optimierung (auch heat_opt)
+        fundRateTyp = bafaRate(hasIsfp);
       }
     }
 
-    brutto+=c;
-    foerder+=f;
+    const fTyp = c.typ * fundRateTyp;
+    fundTypSum += fTyp;
 
-    rows.innerHTML+=`<tr>
-      <td>${m}</td>
-      <td class="right">${eur(c)}</td>
-      <td class="right">${eur(f)}</td>
-      <td class="right">${eur(c-f)}</td>
-    </tr>`;
-  });
+    rows.innerHTML += `
+      <tr>
+        <td>${measures[key]?.label ?? key}</td>
+        <td class="right">${eur(c.typ)}</td>
+        <td class="right">${eur(fTyp)}</td>
+        <td class="right">${eur(c.typ - fTyp)}</td>
+      </tr>
+    `;
+  }
 
-  invBrutto.textContent=eur(brutto);
-  fundSum.textContent=eur(foerder);
-  invNetto.textContent=eur(brutto-foerder);
+  const netTyp = bruttoTyp - fundTypSum;
+
+  // KPIs
+  invBrutto.textContent = eur(bruttoTyp);
+  invBruttoBand.textContent = `Spanne: ${eur(bruttoMin)} bis ${eur(bruttoMax)}`;
+
+  fundSum.textContent = eur(fundTypSum);
+
+  invNetto.textContent = eur(netTyp);
+  invNettoBand.textContent = `Netto-Band nur indikativ (typisch berechnet)`;
+
+  savKwh.textContent = `${intFmt(savedKwh)} kWh`;
+  savPct.textContent = `≈ ${Math.round(savePct*100)}% der Basis`;
+
+  savEur.textContent = eur(savedEur);
+  priceUsed.textContent = `Preis genutzt: ${priceVal.toFixed(2)} €/kWh`;
+
+  baseKwh.textContent = `${intFmt(baseKwhVal)} kWh`;
+  baseNote.textContent = baseNoteTxt;
+
+  co2El = document.getElementById("co2");
+  co2El.textContent = `${intFmt(co2)} kg`;
+
+  const pb = (savedEur>0) ? (netTyp / savedEur) : 0;
+  payback.textContent = years(pb);
+
   result.classList.remove("hidden");
-};
+  window.scrollTo({top: document.body.scrollHeight, behavior:"smooth"});
+});
+
+/* init hints */
+updateKwhHint();
+updatePriceHint();
 </script>
 
 </body>
