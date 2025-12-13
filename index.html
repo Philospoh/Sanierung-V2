@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sanierungsrechner – BAFA/KfW + PV (V2.7)</title>
+<title>Sanierungsrechner – BAFA/KfW + PV (V2.8)</title>
 
 <style>
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#fafafa;margin:0}
@@ -141,12 +141,22 @@
       </div>
 
       <div class="col3">
-        <label>Dachgeschoss ausgebaut / beheizt?</label>
+        <label>Dachgeschoss aktuell beheizt?</label>
         <select id="atticHeated">
-          <option value="no" selected>Nein (DG nicht beheizt)</option>
-          <option value="yes">Ja (DG beheizt)</option>
+          <option value="no" selected>Nein (unbeheizt)</option>
+          <option value="yes">Ja (beheizt)</option>
         </select>
-        <div class="small">Wenn „Nein“: typischerweise „Oberste Geschossdecke“ statt „Dach“ dämmen.</div>
+        <div class="small">Wenn unbeheizt: Frage nach geplantem Ausbau.</div>
+      </div>
+
+      <!-- NEW: Ausbau geplant? only when atticHeated=no -->
+      <div class="col3 hidden" id="atticPlanWrap">
+        <label>Soll das Dachgeschoss ausgebaut / künftig beheizt werden?</label>
+        <select id="atticPlan">
+          <option value="no" selected>Nein</option>
+          <option value="yes">Ja</option>
+        </select>
+        <div class="small">Wenn „Ja“, werden Dach-Maßnahmen angeboten. Wenn „Nein“, OGD wird angeboten.</div>
       </div>
 
       <div class="col3">
@@ -361,8 +371,8 @@
       <div class="col6"><label><input type="checkbox" value="heat_opt"> Heizungsoptimierung (z. B. Abgleich)</label></div>
       <div class="col6"><label><input type="checkbox" value="facade"> Fassade dämmen</label></div>
 
-      <!-- Dach / OGD getrennt -->
-      <div class="col6" id="roofRow"><label><input type="checkbox" id="roofCb" value="roof"> Dach dämmen</label></div>
+      <!-- Dach / OGD dynamisch -->
+      <div class="col6 hidden" id="roofRow"><label><input type="checkbox" id="roofCb" value="roof"> Dach dämmen</label></div>
       <div class="col12 hidden" id="roofModeWrap">
         <div class="subbox">
           <label>Für „Dach dämmen“: Umfang der Arbeiten</label>
@@ -370,11 +380,11 @@
             <option value="insulation_only" selected>Dämmung (ohne Neueindeckung)</option>
             <option value="reroof_plus_insulation">Neueindeckung + Dämmung</option>
           </select>
-          <div class="note">Die Option „Neueindeckung + Dämmung“ erhöht die Kosten deutlich (Unterkonstruktion/Deckung/Anschlüsse).</div>
+          <div class="note">„Neueindeckung + Dämmung“ erhöht die Kosten deutlich.</div>
         </div>
       </div>
 
-      <div class="col6" id="ogdRow"><label><input type="checkbox" id="ogdCb" value="ogd"> Oberste Geschossdecke dämmen</label></div>
+      <div class="col6 hidden" id="ogdRow"><label><input type="checkbox" id="ogdCb" value="ogd"> Oberste Geschossdecke dämmen</label></div>
 
       <div class="col6"><label><input type="checkbox" value="windows"> Fenster erneuern</label></div>
       <div class="col6"><label><input type="checkbox" value="basement"> Kellerdecke dämmen</label></div>
@@ -385,7 +395,8 @@
       <div class="col12">
         <div class="warn">
           <div class="small" id="atticHint">
-            Hinweis: Wenn das Dachgeschoss nicht beheizt ist, wird typischerweise „Oberste Geschossdecke“ gedämmt. Der Rechner passt die Auswahl automatisch an.
+            Hinweis: Wenn DG unbeheizt und <b>kein Ausbau geplant</b>, wird typischerweise die <b>Oberste Geschossdecke</b> gedämmt.
+            Wenn <b>Ausbau geplant</b>, ist das <b>Dach</b> relevant (Dämmung oder Neueindeckung+Dämmung).
           </div>
         </div>
       </div>
@@ -497,8 +508,8 @@ const baseSavePct = {
   heat: 0.25,
   heat_opt: 0.08,
   facade: 0.20,
-  roof: 0.18,   // Dach gedämmt (DG beheizt)
-  ogd: 0.15,    // Oberste Geschossdecke
+  roof: 0.18,   // Dach gedämmt (wenn DG künftig beheizt)
+  ogd: 0.15,    // Oberste Geschossdecke (wenn DG unbeheizt und bleibt so)
   windows: 0.10,
   basement: 0.07
 };
@@ -509,8 +520,7 @@ const measures = {
   heat_opt:  { label:"Heizungsoptimierung", model:"flat",       cost:{min:600,   typ:1200,  max:2500} },
   facade:    { label:"Fassade dämmen", model:"m2_facade",       cost:{min:90,    typ:140,   max:220} },
 
-  // Dach / OGD getrennt:
-  roof:      { label:"Dach dämmen", model:"m2_roof_mode" },      // abhängig von roofMode
+  roof:      { label:"Dach dämmen", model:"m2_roof_mode" },
   ogd:       { label:"Oberste Geschossdecke dämmen", model:"m2_ogd", cost:{min:45, typ:75, max:120} },
 
   windows:   { label:"Fenster erneuern", model:"windows_auto",   cost:{min:80,    typ:120,  max:200} },
@@ -522,8 +532,8 @@ const measures = {
 
 /* Dach-Kostenbänder (€/m²) je Modus */
 const roofCostModes = {
-  insulation_only:        { min:70,  typ:110, max:180 }, // wie bisher
-  reroof_plus_insulation: { min:150, typ:220, max:320 }  // deutlich höher (Eindeckung + Dämmung + Details)
+  insulation_only:        { min:70,  typ:110, max:180 },
+  reroof_plus_insulation: { min:150, typ:220, max:320 }
 };
 
 /* Funding */
@@ -568,14 +578,11 @@ function clamp(n,min,max){ return Math.min(max, Math.max(min,n)); }
 
 /* ==============================
    Regional factor from PLZ (heuristic)
-   - Based on first digit only (0..9)
-   - This is intentionally simple and transparent.
 ============================== */
 function plzRegionFactor(plzStr){
   const s = String(plzStr||"").trim();
   if(!/^\d{5}$/.test(s)) return { factor:1.00, label:"1,00 (Standard)" };
   const d = parseInt(s[0],10);
-  // Heuristik: grobe Marktspreizung (nicht amtlich)
   const map = {
     0:{f:1.05,l:"1,05 (PLZ-Start 0*)"},
     1:{f:1.06,l:"1,06 (PLZ-Start 1*)"},
@@ -612,8 +619,8 @@ function estAreas(wf, floors, buildingType, roofType, dormers, geometry){
   const facadeFactorGeom = geometryFacadeFactor(geometry);
 
   const roofArea = footprint * roofTypeFactor(roofType) * dormerAreaFactor(dormers);
-  const floorArea = footprint;   // Kellerdecke (≈ Grundfläche)
-  const ogdArea = footprint;     // OGD (≈ Grundfläche)
+  const floorArea = footprint;
+  const ogdArea = footprint;
 
   const height = 2.6 * fl;
   const side = Math.sqrt(footprint);
@@ -639,18 +646,16 @@ function renovationFactor(isRenovated, year){
 }
 
 /* ==============================
-   Savings (Heizung/Envelope)
+   Savings
 ============================== */
 function adjustedSavePct(key, ctx){
   let p = baseSavePct[key] ?? 0;
 
-  // Keller beheizt → Kellerdecke weniger Effekt
   if(key === "basement"){
     if(ctx.basementHeated === "yes") p *= 0.55;
     if(ctx.basementHeated === "partial") p *= 0.75;
   }
 
-  // Renovation factor applied to roof/ogd together
   const rf = {
     heat: renovationFactor(ctx.ren_heat, ctx.ren_heat_year),
     heat_opt: renovationFactor(ctx.ren_heat, ctx.ren_heat_year),
@@ -671,14 +676,13 @@ function adjustedSavePct(key, ctx){
 }
 
 /* ==============================
-   Costs per measure (now includes region factor)
+   Costs per measure
 ============================== */
 function costForMeasure(key, wf, areas, upliftPct, regionFactor, ctx){
   const m = measures[key];
   const upliftMul = 1 + (upliftPct/100);
   const rf = regionFactor;
 
-  // PV separate
   if(m.model === "pv_kwp"){
     const pv = pvCostBand(key, ctx);
     return { min: pv.min*upliftMul*rf, typ: pv.typ*upliftMul*rf, max: pv.max*upliftMul*rf, meta: pv.meta };
@@ -698,7 +702,6 @@ function costForMeasure(key, wf, areas, upliftPct, regionFactor, ctx){
   }
   else if(m.model === "m2_roof_mode"){
     const unit = areas.roofArea;
-
     const mode = ctx.roofMode || "insulation_only";
     const band = roofCostModes[mode] || roofCostModes.insulation_only;
 
@@ -706,7 +709,6 @@ function costForMeasure(key, wf, areas, upliftPct, regionFactor, ctx){
     baseTyp = band.typ * unit;
     baseMax = band.max * unit;
 
-    // Gauben erhöhen Detail-/Anschlussaufwand
     const dorm = clamp(ctx.dormers,0,4);
     const cMul = dormerCostFactor(dorm);
     baseMin *= cMul; baseTyp *= cMul; baseMax *= cMul;
@@ -739,7 +741,7 @@ function costForMeasure(key, wf, areas, upliftPct, regionFactor, ctx){
     const gMul = ctx.geometry === "complex" ? 1.06 : 1.00;
     baseMin *= gMul; baseTyp *= gMul; baseMax *= gMul;
   }
-  else { // flat
+  else {
     baseMin = m.cost.min;
     baseTyp = m.cost.typ;
     baseMax = m.cost.max;
@@ -758,7 +760,7 @@ function costForMeasure(key, wf, areas, upliftPct, regionFactor, ctx){
 }
 
 /* ==============================
-   PV model (simple)
+   PV model
 ============================== */
 function pvDefaultKwp(isExpand, buildingType){
   if(isExpand) return 3.0;
@@ -781,10 +783,7 @@ function pvCostBand(key, ctx){
   const kwpInput = parseLocaleNumber(ctx.pvKwp);
   const kwp = (kwpInput > 0) ? kwpInput : pvDefaultKwp(isExpand, ctx.buildingType);
   const per = pvCostPerKwpBand(isExpand);
-  return {
-    min: per.min*kwp, typ: per.typ*kwp, max: per.max*kwp,
-    meta: { kwp, isExpand }
-  };
+  return { min: per.min*kwp, typ: per.typ*kwp, max: per.max*kwp, meta: { kwp, isExpand } };
 }
 function pvAnnualSavings(ctx){
   const isExpand = ctx.selectedPvKey === "pv_expand";
@@ -852,33 +851,59 @@ function syncPvUi(){
   }
 }
 
-/* Dach vs OGD abhängig von DG beheizt */
-function syncAtticUi(){
+/* NEW: DG unbeheizt → Ausbau geplant? */
+function syncAtticPlanUi(){
   const atticHeated = document.getElementById("atticHeated").value;
+  const planWrap = document.getElementById("atticPlanWrap");
+  if(atticHeated === "no"){
+    planWrap.classList.remove("hidden");
+  } else {
+    planWrap.classList.add("hidden");
+    document.getElementById("atticPlan").value = "no"; // reset
+  }
+}
+
+/* Dach/OGD Auswahl abhängig von atticHeated + atticPlan */
+function syncRoofOgdUi(){
+  const atticHeated = document.getElementById("atticHeated").value;
+  const atticPlan = document.getElementById("atticPlan").value;
+
   const roofRow = document.getElementById("roofRow");
   const ogdRow = document.getElementById("ogdRow");
   const roofCb = document.getElementById("roofCb");
   const ogdCb = document.getElementById("ogdCb");
   const roofModeWrap = document.getElementById("roofModeWrap");
 
-  if(atticHeated === "yes"){
+  // Determine target:
+  // - If attic heated now => roof relevant
+  // - If attic not heated but planned => roof relevant
+  // - If attic not heated and not planned => ogd relevant
+  const roofRelevant = (atticHeated === "yes") || (atticHeated === "no" && atticPlan === "yes");
+  const ogdRelevant = (atticHeated === "no" && atticPlan === "no");
+
+  if(roofRelevant){
     roofRow.classList.remove("hidden");
     ogdRow.classList.add("hidden");
     ogdCb.checked = false;
-  } else {
+  } else if(ogdRelevant){
     ogdRow.classList.remove("hidden");
     roofRow.classList.add("hidden");
     roofCb.checked = false;
     roofModeWrap.classList.add("hidden");
+  } else {
+    // fallback
+    roofRow.classList.remove("hidden");
+    ogdRow.classList.add("hidden");
+    ogdCb.checked = false;
   }
 }
 
 /* Dach-Modus Panel */
 function syncRoofModeUi(){
   const roofChecked = document.getElementById("roofCb").checked;
-  const atticHeated = document.getElementById("atticHeated").value;
+  const roofRowHidden = document.getElementById("roofRow").classList.contains("hidden");
   const wrap = document.getElementById("roofModeWrap");
-  if(atticHeated === "yes" && roofChecked) wrap.classList.remove("hidden");
+  if(!roofRowHidden && roofChecked) wrap.classList.remove("hidden");
   else wrap.classList.add("hidden");
 }
 
@@ -895,7 +920,16 @@ document.getElementById("wf").addEventListener("input", updateKwhHint);
 document.getElementById("baujahr").addEventListener("change", updateKwhHint);
 document.getElementById("fuel").addEventListener("change", updateHeatPriceHint);
 document.getElementById("plz").addEventListener("input", updatePlzHint);
-document.getElementById("atticHeated").addEventListener("change", ()=>{ syncAtticUi(); syncRoofModeUi(); });
+
+document.getElementById("atticHeated").addEventListener("change", ()=>{
+  syncAtticPlanUi();
+  syncRoofOgdUi();
+  syncRoofModeUi();
+});
+document.getElementById("atticPlan").addEventListener("change", ()=>{
+  syncRoofOgdUi();
+  syncRoofModeUi();
+});
 document.getElementById("roofCb").addEventListener("change", syncRoofModeUi);
 
 /* ==============================
@@ -908,8 +942,17 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
   const selected = [...document.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
   if(!selected.length){ alert("Bitte mindestens eine Maßnahme auswählen."); return; }
 
+  // Hard guard: prevent selecting hidden roof/ogd
+  const roofHidden = document.getElementById("roofRow").classList.contains("hidden");
+  const ogdHidden  = document.getElementById("ogdRow").classList.contains("hidden");
+  if(roofHidden && selected.includes("roof")){ alert("Dach-Maßnahme ist in Ihrer Konstellation nicht aktiv. Bitte Auswahl prüfen."); return; }
+  if(ogdHidden && selected.includes("ogd")){ alert("OGD-Maßnahme ist in Ihrer Konstellation nicht aktiv. Bitte Auswahl prüfen."); return; }
+
   const region = plzRegionFactor(document.getElementById("plz").value);
   const regionFactor = region.factor;
+
+  const atticHeated = document.getElementById("atticHeated").value;
+  const atticPlan = document.getElementById("atticPlan").value;
 
   const ctx = {
     plz: document.getElementById("plz").value,
@@ -922,8 +965,11 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
     geometry: document.getElementById("geometry").value,
     roofType: document.getElementById("roofType").value,
     dormers: (document.getElementById("dormers").value === "4") ? 4 : parseInt(document.getElementById("dormers").value,10),
-    atticHeated: document.getElementById("atticHeated").value,
+
+    atticHeated,
+    atticPlan, // NEW
     roofMode: document.getElementById("roofMode").value,
+
     basementHeated: document.getElementById("basementHeated").value,
     orientation: document.getElementById("orientation").value,
     windowCount: document.getElementById("windowCount").value,
@@ -966,7 +1012,7 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
   const spaceHeatShare = 0.85;
   const affectedShareForHeatMeasures = (ctx.dhw === "instant_electric") ? spaceHeatShare : 1.0;
 
-  // Savings (Heizung/Envelope) – multiplicative (excluding PV)
+  // Savings (excluding PV)
   let remaining = 1.0;
   const perMeasureNotes = {};
 
@@ -998,10 +1044,15 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
       perMeasureNotes[k] = (perMeasureNotes[k] ? perMeasureNotes[k] + " • " : "") + "bereits saniert → Zusatzpotenzial reduziert";
     }
 
-    // Dach-Mode Hinweis
     if(k === "roof"){
       perMeasureNotes[k] = (perMeasureNotes[k] ? perMeasureNotes[k] + " • " : "") +
         (ctx.roofMode === "reroof_plus_insulation" ? "Neueindeckung + Dämmung" : "Dämmung ohne Neueindeckung");
+      if(ctx.atticHeated === "no" && ctx.atticPlan === "yes"){
+        perMeasureNotes[k] = (perMeasureNotes[k] ? perMeasureNotes[k] + " • " : "") + "DG-Ausbau geplant";
+      }
+    }
+    if(k === "ogd"){
+      perMeasureNotes[k] = (perMeasureNotes[k] ? perMeasureNotes[k] + " • " : "") + "DG bleibt unbeheizt";
     }
 
     remaining *= (1 - clamp(p,0,0.60));
@@ -1012,7 +1063,7 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
   const savedHeatEur = savedHeatKwh * heatPrice;
   const co2Heat = savedHeatKwh * (co2FactorsHeat[fuel] ?? 0);
 
-  // PV savings (electric) if selected
+  // PV savings
   let pv = { kwp:0, genKwh:0, selfShare:0, elecPrice:0, eurSave:0 };
   let co2Pv = 0;
   if(isPvSelected && ctx.selectedPvKey){
@@ -1053,7 +1104,6 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
     const fTyp = c.typ * fundRateTyp;
     fundTypSum += fTyp;
 
-    // extra hint for PV kWp used
     if((key === "pv_install" || key === "pv_expand") && c.meta?.kwp){
       perMeasureNotes[key] = (perMeasureNotes[key] ? perMeasureNotes[key] + " • " : "") + `${c.meta.kwp.toFixed(1)} kWp angesetzt`;
     }
@@ -1099,6 +1149,7 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
   flags.push(`Warmwasser: ${ctx.dhw === "instant_electric" ? "DLE" : "über Heizung"}`);
   if(selected.includes("roof")) flags.push(`Dach: ${ctx.roofMode === "reroof_plus_insulation" ? "Eindeckung+Dämmung" : "Dämmung"}`);
   if(selected.includes("ogd")) flags.push(`OGD: Dämmung`);
+  if(ctx.atticHeated === "no") flags.push(`DG-Ausbau geplant: ${ctx.atticPlan === "yes" ? "ja" : "nein"}`);
   if(isPvSelected) flags.push(`PV: ${ctx.selectedPvKey === "pv_expand" ? "Erweiterung" : "Neu"}`);
 
   document.getElementById("flags").innerHTML = flags.map(t=>`<span class="pill">${t}</span>`).join("");
@@ -1108,8 +1159,13 @@ document.getElementById("calcBtn").addEventListener("click", ()=>{
     unknown:"unbekannt", n:"Nord", e:"Ost", s:"Süd", w:"West", se:"Südost", sw:"Südwest", ne:"Nordost", nw:"Nordwest"
   })[ctx.orientation] || "unbekannt";
 
+  const roofRelevant = (ctx.atticHeated === "yes") || (ctx.atticHeated === "no" && ctx.atticPlan === "yes");
+  const topRelevant = (ctx.atticHeated === "no" && ctx.atticPlan === "no");
+
   document.getElementById("geomNote").innerHTML =
-    `DG beheizt: <b>${ctx.atticHeated==="yes"?"ja":"nein"}</b> (→ ${ctx.atticHeated==="yes"?"Dach":"OGD"} relevant), Dach: <b>${ctx.roofType}</b>, Gauben: <b>${ctx.dormers}</b>, Ausrichtung: <b>${orientLabel}</b>.<br>` +
+    `DG aktuell beheizt: <b>${ctx.atticHeated==="yes"?"ja":"nein"}</b>` +
+    (ctx.atticHeated==="no" ? ` • Ausbau geplant: <b>${ctx.atticPlan==="yes"?"ja":"nein"}</b>` : ``) +
+    ` (→ relevant: <b>${roofRelevant ? "Dach" : "OGD"}</b>), Dach: <b>${ctx.roofType}</b>, Gauben: <b>${ctx.dormers}</b>, Ausrichtung: <b>${orientLabel}</b>.<br>` +
     `Indikative Flächen: Dach ≈ <b>${intFmt(areas.roofArea)} m²</b>, OGD ≈ <b>${intFmt(areas.ogdArea)} m²</b>, Fassade ≈ <b>${intFmt(areas.facadeArea)} m²</b>, Kellerdecke ≈ <b>${intFmt(areas.floorArea)} m²</b>.`;
 
   document.getElementById("result").classList.remove("hidden");
@@ -1125,10 +1181,16 @@ function init(){
   updateElecPriceHint();
   updatePlzHint();
   syncPvUi();
-  syncAtticUi();
+
+  syncAtticPlanUi();
+  syncRoofOgdUi();
   syncRoofModeUi();
 }
 init();
+</script>
+
+<script>
+/* init listeners defined above */
 </script>
 
 </body>
